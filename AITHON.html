@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ICIS — Intelligent Campus Information System (Advanced Demo)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--glass:rgba(255,255,255,0.03);--muted:#94a3b8}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#e6eef6;background:linear-gradient(180deg,#071027 0%, #071827 60%);margin:0}
+    .container{max-width:1200px;margin:24px auto;padding:20px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{background:linear-gradient(90deg,#06b6d4,#7c3aed);width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#071827}
+    h1{margin:0;font-size:20px}
+
+    /* Login modal */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter:blur(6px);border-radius:14px;padding:22px;width:100%;max-width:520px;border:1px solid rgba(255,255,255,0.04)}
+    label{font-size:13px;color:var(--muted);display:block;margin-top:12px}
+    input[type=text], input[type=password], select, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#e6eef6;margin-top:6px}
+    button{background:linear-gradient(90deg,#06b6d4,#7c3aed);color:#071827;padding:10px 14px;border:0;border-radius:10px;font-weight:600;cursor:pointer}
+    .linkbtn{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#cfeff6;padding:8px;border-radius:8px}
+
+    /* Layout */
+    .layout{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start;margin-top:18px}
+    .sidebar{padding:18px;background:var(--card);border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .main{padding:18px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
+    .nav button{display:block;width:100%;text-align:left;padding:10px;border:0;background:transparent;color:#e6eef6;border-radius:8px;margin-bottom:6px;cursor:pointer}
+    .nav button.active{background:rgba(6,182,212,0.08)}
+
+    .section{margin-bottom:14px}
+    .card-mini{background:var(--glass);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+    .muted{color:var(--muted);font-size:13px}
+
+    /* chat */
+    .chat{display:flex;flex-direction:column;height:360px}
+    .msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.005), transparent)}
+    .msg{margin-bottom:10px}
+    .bubble{display:inline-block;padding:8px 12px;border-radius:12px;max-width:80%}
+    .me .bubble{background:linear-gradient(90deg,#06b6d4,#7c3aed);color:#071827}
+    .bot .bubble{background:rgba(255,255,255,0.03);color:#e6eef6}
+    .chat-input{display:flex;margin-top:8px;gap:8px}
+    .small{font-size:13px}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .flex{display:flex;gap:10px}
+
+    footer{color:var(--muted);margin-top:16px;font-size:13px}
+
+    @media (max-width:980px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <div class="logo">IC</div>
+      <div>
+        <h1>ICIS — Intelligent Campus Information System (Advanced Demo)</h1>
+        <div class="muted small">AI-powered campus assistant • Wellness & AR navigation ready • Editable content</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="card-mini">
+          <div id="userBadge"><strong>Not signed in</strong><div class="muted">Please sign in to access personalized features</div></div>
+        </div>
+
+        <nav class="nav" style="margin-top:12px">
+          <button data-view="home" class="active">Home</button>
+          <button data-view="events">Upcoming Events</button>
+          <button data-view="faculty">Faculty Directory</button>
+          <button data-view="timetable">Timetable</button>
+          <button data-view="map">AR Campus Nav</button>
+          <button data-view="wellness">Wellness & Health</button>
+          <button data-view="skills">AI Skill Coach</button>
+          <button data-view="chat">AI Chatbot</button>
+          <button id="exportBtn" class="linkbtn" style="margin-top:10px">Export Data</button>
+          <input type="file" id="importFile" style="display:none" />
+          <button id="importBtn" class="linkbtn">Import Data</button>
+          <button id="logout" class="linkbtn" style="margin-top:8px;display:none">Sign out</button>
+        </nav>
+
+        <div style="margin-top:12px" class="card-mini">
+          <strong>Quick contacts</strong>
+          <div class="muted small">Admin • Library • Health Center</div>
+          <div style="margin-top:8px">
+            <div class="muted small">Admin: admin@college.edu</div>
+            <div class="muted small">Health: health@college.edu • +91 80000 00000</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <!-- Views -->
+        <section id="view-home" class="section">
+          <div class="flex" style="justify-content:space-between;align-items:center">
+            <div>
+              <h2 id="pageTitle">Home</h2>
+              <div class="muted">Personalized snapshot and actions</div>
+            </div>
+            <div>
+              <button id="openLogin" class="linkbtn">Sign in / Switch user</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="grid-2">
+            <div class="card-mini">
+              <strong>Next Event</strong>
+              <div id="nextEvent" class="muted small">—</div>
+              <div style="margin-top:10px"><button id="seeEvents" class="linkbtn">View all events</button></div>
+            </div>
+
+            <div class="card-mini">
+              <strong>Today • Timetable</strong>
+              <div id="todayTimetable" class="muted small">—</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="grid-2">
+            <div class="card-mini">
+              <strong>Wellness Quick Check</strong>
+              <div class="muted small">Feeling stressed? Try a 2-minute breathing exercise in Wellness tab.</div>
+              <div style="margin-top:8px"><button onclick="showView('wellness')" class="linkbtn">Open Wellness</button></div>
+            </div>
+
+            <div class="card-mini">
+              <strong>AI Skill Coach</strong>
+              <div class="muted small">Get suggestions for short courses & micro-skills based on your interests.</div>
+              <div style="margin-top:8px"><button onclick="showView('skills')" class="linkbtn">Try Skill Coach</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-events" class="section" style="display:none">
+          <h3>Upcoming Events</h3>
+          <div id="eventsList"></div>
+          <div style="margin-top:12px">
+            <h4>Add / Edit Event (demo)</h4>
+            <input id="evTitle" placeholder="Event title" />
+            <input id="evDate" type="date" />
+            <input id="evTime" type="time" />
+            <input id="evVenue" placeholder="Venue" />
+            <div style="margin-top:8px"><button id="addEvent">Add Event</button></div>
+          </div>
+        </section>
+
+        <section id="view-faculty" class="section" style="display:none">
+          <h3>Faculty Directory</h3>
+          <div id="facultyList"></div>
+          <div style="margin-top:12px">
+            <h4>Add Faculty</h4>
+            <input id="fName" placeholder="Name" />
+            <input id="fDept" placeholder="Department" />
+            <input id="fEmail" placeholder="Email" />
+            <div style="margin-top:8px"><button id="addFaculty">Add Faculty</button></div>
+          </div>
+        </section>
+
+        <section id="view-timetable" class="section" style="display:none">
+          <h3>Timetable</h3>
+          <div id="timetable"></div>
+          <div style="margin-top:12px">
+            <h4>Edit (demo)</h4>
+            <select id="daySel"><option>Monday</option><option>Tuesday</option><option>Wednesday</option></select>
+            <input id="classTime" placeholder="09:00" />
+            <input id="classCourse" placeholder="Course (e.g., CS101)" />
+            <input id="classRoom" placeholder="Room" />
+            <div style="margin-top:8px"><button id="addClass">Add Class</button></div>
+          </div>
+        </section>
+
+        <section id="view-map" class="section" style="display:none">
+          <h3>AR Campus Navigation (Demo)</h3>
+          <div class="muted small">Click 'Open AR' on a supported mobile device to try a placeholder AR route overlay. For hackathon, explain judge this is WebXR-ready and can integrate with Google Maps AR SDK or Mapbox AR.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <input id="navDest" placeholder="Enter destination (e.g., Library)" />
+            <button id="openAR">Open AR</button>
+          </div>
+          <div style="margin-top:12px">
+            <iframe id="miniMap" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.019" width="100%" height="360" style="border:0;border-radius:8px"></iframe>
+          </div>
+        </section>
+
+        <section id="view-wellness" class="section" style="display:none">
+          <h3>Wellness & Health</h3>
+          <div class="grid-2">
+            <div>
+              <div class="card-mini">
+                <strong>Quick Mental Health Check</strong>
+                <div class="muted small">Select how you feel now</div>
+                <select id="mood"><option value="ok">Okay</option><option value="stressed">Stressed</option><option value="low">Low energy</option><option value="happy">Happy</option></select>
+                <div style="margin-top:8px"><button id="moodBtn">Get Tip</button></div>
+                <div id="moodTip" class="muted small" style="margin-top:8px"></div>
+              </div>
+
+              <div style="margin-top:12px" class="card-mini">
+                <strong>Health Center</strong>
+                <div class="muted small">Open 9:00 - 17:00 (Mon-Fri)</div>
+                <div class="muted small" style="margin-top:8px">Phone: +91 80000 00000 • Email: health@college.edu</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card-mini">
+                <strong>2-minute guided breathing</strong>
+                <div id="breath" class="muted small">Press start to begin</div>
+                <div style="margin-top:8px"><button id="startBreath">Start</button></div>
+              </div>
+
+              <div style="margin-top:12px" class="card-mini">
+                <strong>Nearby Gyms & Clinics</strong>
+                <div id="nearbyHealth" class="muted small">College Gym • Wellness Studio</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-skills" class="section" style="display:none">
+          <h3>AI Skill Coach</h3>
+          <div class="muted small">Tell us your interest and receive suggested micro-skills, courses, and short projects.</div>
+          <div style="margin-top:8px">
+            <input id="interest" placeholder="e.g., Web Development, Data Science" />
+            <div style="margin-top:8px"><button id="getSkills">Get Suggestions</button></div>
+            <div id="skillsOut" style="margin-top:10px"></div>
+          </div>
+        </section>
+
+        <section id="view-chat" class="section" style="display:none">
+          <h3>AI Chatbot</h3>
+          <div class="chat">
+            <div id="msgs" class="msgs"></div>
+            <div class="chat-input">
+              <input id="chatbox" placeholder="Ask: library hours, menu, events, help..." />
+              <button id="sendChat">Send</button>
+            </div>
+          </div>
+        </section>
+
+        <footer>Demo built for hackathon — this single-file app is a prototype. Explain in your pitch how AR, LLM integration, and campus systems would be added for production.</footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h2>Student Login</h2>
+          <div class="muted">Demo login — use any Student ID. Data is stored locally for demo purposes.</div>
+        </div>
+        <div><button id="closeLogin" class="linkbtn">Close</button></div>
+      </div>
+
+      <label for="stuId">Student ID</label>
+      <input id="stuId" type="text" placeholder="S123456" />
+      <label for="stuName">Name</label>
+      <input id="stuName" type="text" placeholder="Your name" />
+      <label for="stuEmail">Email</label>
+      <input id="stuEmail" type="text" placeholder="you@college.edu" />
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button id="doLogin">Sign in</button>
+        <button id="demoLogin" class="linkbtn">Quick Demo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /************* Demo data (persist in localStorage) *****************/
+    const DEFAULT = {
+      events: [
+        {id:1,title:'Guest Lecture — AI in Education',date:'2025-09-18',time:'16:00',venue:'Auditorium A'},
+        {id:2,title:'Cultural Night',date:'2025-09-25',time:'19:00',venue:'Open Grounds'}
+      ],
+      faculty: [
+        {name:'Dr. Asha Rao',dept:'Computer Science',email:'asha.rao@college.edu'},
+        {name:'Prof. Ramesh Kumar',dept:'Electronics',email:'ramesh.k@college.edu'}
+      ],
+      timetable: { Monday:[{time:'10:00',course:'CS101',room:'204'}], Tuesday:[] }
+    };
+
+    function loadData(){
+      const data = JSON.parse(localStorage.getItem('icis_data') || 'null');
+      if(!data){ localStorage.setItem('icis_data', JSON.stringify(DEFAULT)); return DEFAULT; }
+      return data;
+    }
+    function saveData(d){ localStorage.setItem('icis_data', JSON.stringify(d)); }
+
+    let DATA = loadData();
+
+    /**************** UI wiring ****************/
+    const navBtns = document.querySelectorAll('.nav button[data-view]');
+    navBtns.forEach(b=>b.addEventListener('click', ()=>{ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); showView(b.getAttribute('data-view')); }));
+
+    function showView(view){ document.querySelectorAll('main section[id^="view-"]').forEach(s=>s.style.display='none'); const el = document.getElementById('view-'+view); if(el) el.style.display='block'; document.getElementById('pageTitle').textContent = view.charAt(0).toUpperCase()+view.slice(1); if(view==='events') renderEvents(); if(view==='faculty') renderFaculty(); if(view==='timetable') renderTimetable(); if(view==='home') loadHome(); }
+
+    document.getElementById('openLogin').addEventListener('click', ()=>{ document.getElementById('loginModal').style.display='flex'; });
+    document.getElementById('closeLogin').addEventListener('click', ()=>{ document.getElementById('loginModal').style.display='none'; });
+    document.getElementById('demoLogin').addEventListener('click', ()=>{ document.getElementById('stuId').value='S2025001'; document.getElementById('stuName').value='Demo Student'; document.getElementById('stuEmail').value='demo@college.edu'; });
+
+    document.getElementById('doLogin').addEventListener('click', ()=>{
+      const sid = document.getElementById('stuId').value.trim(); const name = document.getElementById('stuName').value.trim(); const email = document.getElementById('stuEmail').value.trim();
+      if(!sid){alert('Enter Student ID');return}
+      const user = {sid,name,email}; sessionStorage.setItem('icis_user', JSON.stringify(user)); document.getElementById('userBadge').innerHTML = `<strong>${name||sid}</strong><div class=\"muted small\">${email||''}</div>`; document.getElementById('logout').style.display='block'; document.getElementById('loginModal').style.display='none'; showView('home'); updateToday();
+    });
+
+    document.getElementById('logout').addEventListener('click', ()=>{ sessionStorage.removeItem('icis_user'); location.reload(); });
+
+    // Export / Import
+    document.getElementById('exportBtn').addEventListener('click', ()=>{ const a = document.createElement('a'); const blob = new Blob([localStorage.getItem('icis_data')],'application/json'); a.href = URL.createObjectURL(blob); a.download = 'icis_data.json'; a.click(); });
+    document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
+    document.getElementById('importFile').addEventListener('change', (e)=>{ const f = e.target.files[0]; const r = new FileReader(); r.onload = ()=>{ try{ const j = JSON.parse(r.result); localStorage.setItem('icis_data', JSON.stringify(j)); alert('Imported'); location.reload(); }catch(err){ alert('Invalid file'); } }; r.readAsText(f); });
+
+    /**************** Events CRUD ****************/
+    function renderEvents(){ const wrap = document.getElementById('eventsList'); wrap.innerHTML=''; DATA.events.forEach(ev=>{ const d = document.createElement('div'); d.className='card-mini'; d.style.marginBottom='8px'; d.innerHTML = `<strong>${ev.title}</strong><div class=\"muted small\">${ev.date} • ${ev.time} • ${ev.venue}</div>`; wrap.appendChild(d); }); }
+    document.getElementById('addEvent').addEventListener('click', ()=>{ const t=document.getElementById('evTitle').value, dt=document.getElementById('evDate').value, tm=document.getElementById('evTime').value, vn=document.getElementById('evVenue').value; if(!t||!dt){alert('Title and date required');return} DATA.events.unshift({id:Date.now(),title:t,date:dt,time:tm||'TBD',venue:vn||'TBD'}); saveData(DATA); renderEvents(); alert('Added'); });
+
+    /**************** Faculty CRUD ****************/
+    function renderFaculty(){ const wrap=document.getElementById('facultyList'); wrap.innerHTML=''; DATA.faculty.forEach(f=>{ const el=document.createElement('div'); el.className='card-mini'; el.style.marginBottom='8px'; el.innerHTML=`<strong>${f.name}</strong><div class=\"muted small\">${f.dept} • ${f.email}</div>`; wrap.appendChild(el); }); }
+    document.getElementById('addFaculty').addEventListener('click', ()=>{ const name=document.getElementById('fName').value, dept=document.getElementById('fDept').value, email=document.getElementById('fEmail').value; if(!name){alert('Name required');return} DATA.faculty.push({name,dept,email}); saveData(DATA); renderFaculty(); alert('Added'); });
+
+    /**************** Timetable ****************/
+    function renderTimetable(){ const wrap=document.getElementById('timetable'); wrap.innerHTML=''; for(const day in DATA.timetable){ const el=document.createElement('div'); el.style.marginBottom='8px'; el.innerHTML=`<strong>${day}</strong>`; DATA.timetable[day].forEach(c=>{ const ci=document.createElement('div'); ci.className='card-mini'; ci.style.marginTop='6px'; ci.innerHTML=`${c.time} • ${c.course} • ${c.room}`; el.appendChild(ci); }); wrap.appendChild(el); } }
+    document.getElementById('addClass').addEventListener('click', ()=>{ const day=document.getElementById('daySel').value, time=document.getElementById('classTime').value, course=document.getElementById('classCourse').value, room=document.getElementById('classRoom').value; if(!DATA.timetable[day]) DATA.timetable[day]=[]; DATA.timetable[day].push({time,course,room}); saveData(DATA); renderTimetable(); alert('Class added'); });
+
+    /**************** Home & Today ****************/
+    function loadHome(){ if(DATA.events.length) document.getElementById('nextEvent').innerHTML = `<strong>${DATA.events[0].title}</strong><div class=\"muted small\">${DATA.events[0].date} • ${DATA.events[0].time} • ${DATA.events[0].venue}</div>`; updateToday(); }
+    function updateToday(){ const today = new Date().toLocaleDateString('en-GB'); const user = JSON.parse(sessionStorage.getItem('icis_user')||'null'); if(user) document.getElementById('userBadge').innerHTML = `<strong>${user.name||user.sid}</strong><div class=\"muted small\">${user.email||user.sid}</div>`; const day = new Date().toLocaleString('en-GB',{weekday:'long'}); const classes = DATA.timetable[day]||[]; document.getElementById('todayTimetable').innerHTML = classes.length? classes.map(c=>`${c.time} • ${c.course} • ${c.room}`).join('<br>') : 'No classes today'; }
+
+    /**************** Wellness tools ****************/
+    document.getElementById('moodBtn').addEventListener('click', ()=>{ const v=document.getElementById('mood').value; const tip={ok:'Keep a steady routine and short breaks.', stressed:'Try deep breathing for 2 minutes and speak to counselor if persistent.', low:'Light exercise and hydration help. Visit Health Center.', happy:'Great — maintain your routine and help peers!'}[v]; document.getElementById('moodTip').textContent = tip; });
+
+    let breathTimer=null; document.getElementById('startBreath').addEventListener('click', ()=>{
+      const el=document.getElementById('breath'); let step=0; if(breathTimer) { clearInterval(breathTimer); breathTimer=null; el.textContent='Stopped'; return } el.textContent='Breathe in...'; breathTimer=setInterval(()=>{ step=(step+1)%4; if(step===0) el.textContent='Breathe in...'; else if(step===1) el.textContent='Hold...'; else if(step===2) el.textContent='Breathe out...'; else el.textContent='Relax...'; },2000);
+    });
+
+    /**************** AI Skill Coach (simple LLM-like heuristics) ****************/
+    document.getElementById('getSkills').addEventListener('click', ()=>{
+      const interest=document.getElementById('interest').value.toLowerCase(); const out=document.getElementById('skillsOut'); if(!interest){ out.innerHTML='Enter an interest'; return }
+      // simple suggestions — replaceable with real LLM suggestions
+      const suggestions = [];
+      if(interest.includes('data')) suggestions.push('Intro to Data Science (2 weeks), Mini project: analyze attendance dataset');
+      if(interest.includes('web')) suggestions.push('Modern Web Dev (React) (3 weeks), Build portfolio site');
+      if(interest.includes('ml')||interest.includes('ai')) suggestions.push('ML Crash Course, Implement a tiny classifier');
+      if(!suggestions.length) suggestions.push('Foundations: SQL, Git, and Presentation Skills');
+      out.innerHTML = `<ul>${suggestions.map(s=>`<li class=\"muted small\">${s}</li>`).join('')}</ul>`;
+    });
+
+    /**************** Chatbot (calls backend /api/chat if available) ****************/
+    const msgs = document.getElementById('msgs'); function appendChat(t,who){ const d=document.createElement('div'); d.className = 'msg '+(who==='me'?'me':'bot'); const b=document.createElement('div'); b.className='bubble'; b.textContent=t; d.appendChild(b); msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; }
+    document.getElementById('sendChat').addEventListener('click', sendChat); document.getElementById('chatbox').addEventListener('keydown',(e)=>{ if(e.key==='Enter') sendChat(); });
+    async function sendChat(){ const txt=document.getElementById('chatbox').value.trim(); if(!txt) return; appendChat(txt,'me'); document.getElementById('chatbox').value='';
+      try{ const res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})}); if(res.ok){ const j=await res.json(); appendChat(j.reply||'No reply'); if(j.followups) appendChat('Try: '+j.followups.join(' | ')); } else throw 0 }catch(err){ // fallback simple bot
+        const l = txt.toLowerCase(); if(l.includes('library')) appendChat('Library: 8:00 — 20:00'); else if(l.includes('menu')||l.includes('canteen')) appendChat('Today: Rice • Dal • Veg curry • Salad'); else if(l.includes('event')) appendChat('Next event: '+(DATA.events[0]?.title||'None')); else appendChat('Sorry — I cannot reach the AI server. Try: library, menu, events.'); }
+    }
+
+    /**************** AR Nav placeholder ****************/
+    document.getElementById('openAR').addEventListener('click', ()=>{
+      const dest = document.getElementById('navDest').value || 'Library'; alert('AR navigation placeholder. For production: integrate WebXR + mapping SDKs to overlay route to '+dest+'. Explain this in your demo.');
+    });
+
+    /**************** Init ****************/
+    (function init(){ DATA = loadData(); renderEvents(); renderFaculty(); renderTimetable(); const u = JSON.parse(sessionStorage.getItem('icis_user')||'null'); if(u) { document.getElementById('userBadge').innerHTML = `<strong>${u.name||u.sid}</strong><div class=\"muted small\">${u.email||''}</div>`; document.getElementById('logout').style.display='block'; } loadHome(); })();
+  </script>
+</body>
+</html>
+
+
+
+
+
